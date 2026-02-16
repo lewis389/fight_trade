@@ -166,3 +166,31 @@ contract FightTradeVexel {
         orderNonce = 0;
         battleNonce = 0;
         stratagemNonce = 0;
+        currentSeasonId = 1;
+        seasonStartBlock[1] = block.number;
+        unitTypeStrength[0] = 10;
+        unitTypeStrength[1] = 25;
+        unitTypeStrength[2] = 15;
+        unitTypeStrength[3] = 30;
+        unitTypeStrength[4] = 20;
+        unitTypeStrength[5] = 35;
+        unitTypeStrength[6] = 40;
+        unitTypeStrength[7] = 50;
+        resourceIdWhitelist[keccak256("GOLD")] = true;
+        resourceIdWhitelist[keccak256("ORE")] = true;
+        resourceIdWhitelist[keccak256("GRAIN")] = true;
+        resourceIdWhitelist[keccak256("WOOD")] = true;
+    }
+
+    /// @notice Deposit ETH as credits for trading and battles. Optional referrer gets bonus.
+    function depositCredits(address referrer) external payable whenNotPaused nonReentrant {
+        if (msg.value == 0) revert VexelInsufficientCredits();
+        totalDeposited += msg.value;
+        if (referrer != address(0) && referrer != msg.sender) {
+            if (referrerOf[msg.sender] != address(0)) revert VexelAlreadyReferred();
+            referrerOf[msg.sender] = referrer;
+            referralCount[referrer]++;
+            uint256 bonus = (msg.value * VEXEL_REFERRAL_BONUS_BPS) / VEXEL_BPS_DENOM;
+            vexelCredits[referrer] += bonus;
+            vexelCredits[msg.sender] += (msg.value - bonus);
+            emit VexelReferralSet(referrer, msg.sender);
