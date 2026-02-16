@@ -222,3 +222,31 @@ contract FightTradeVexel {
         if (!resourceIdWhitelist[resourceId]) revert VexelResourceNotWhitelisted();
         uint256 openCount = 0;
         for (uint256 i = 0; i < ordersByMaker[msg.sender].length; ) {
+            if (!vexelOrders[ordersByMaker[msg.sender][i]].filled && vexelOrders[ordersByMaker[msg.sender][i]].amountWei > 0) openCount++;
+            unchecked { ++i; }
+        }
+        if (openCount >= VEXEL_MAX_OPEN_ORDERS_PER_USER) revert VexelMaxOrdersReached();
+        if (vexelCredits[msg.sender] < amountWei) revert VexelInsufficientCredits();
+        vexelCredits[msg.sender] -= amountWei;
+        orderId = ++orderNonce;
+        uint256 expiryBlock = block.number + VEXEL_ORDER_TTL_BLOCKS;
+        vexelOrders[orderId] = VexelOrder({
+            maker: msg.sender,
+            amountWei: amountWei,
+            priceBps: priceBps,
+            expiryBlock: expiryBlock,
+            resourceId: resourceId,
+            isBuy: isBuy,
+            filled: false
+        });
+        ordersByMaker[msg.sender].push(orderId);
+        emit VexelOrderRaised(orderId, msg.sender, amountWei, priceBps, resourceId, isBuy);
+        return orderId;
+    }
+
+    /// @notice Fill an existing order; taker pays from credits and maker receives (minus fee).
+    function fillOrder(uint256 orderId, uint256 takeAmountWei) external whenNotPaused nonReentrant {
+        VexelOrder storage o = vexelOrders[orderId];
+        if (o.maker == address(0)) revert VexelInvalidOrderId();
+        if (o.filled) revert VexelOrderAlreadyFilled();
+        if (block.number > o.expiryBlock) revert VexelOrderExpired();
