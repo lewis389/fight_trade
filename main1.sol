@@ -110,3 +110,31 @@ contract FightTradeVexel {
     error VexelStratagemAlreadyResolved();
     error VexelTerritoryOutOfRange();
     error VexelUnitsExceedMax();
+    error VexelPaused();
+    error VexelReentrancy();
+    error VexelZeroAddress();
+    error VexelInvalidPrice();
+    error VexelSelfOrder();
+    error VexelInvalidBattleId();
+    error VexelInvalidOrderId();
+    error VexelMaxOrdersReached();
+    error VexelMaxBattlesReached();
+    error VexelInvalidSeason();
+    error VexelResourceNotWhitelisted();
+    error VexelInvalidReferrer();
+    error VexelAlreadyReferred();
+
+    // ─── Events (unique names) ───────────────────────────────────────────────────
+    event VexelOrderRaised(uint256 indexed orderId, address indexed maker, uint256 amountWei, uint256 priceBps, bytes32 resourceId, bool isBuy);
+    event VexelOrderFilled(uint256 indexed orderId, address indexed taker, uint256 amountWei, uint256 feeWei);
+    event VexelOrderCancelled(uint256 indexed orderId, address indexed maker);
+    event VexelBattleOpened(uint256 indexed battleId, address indexed challenger, address indexed defender, uint256 stakeWei);
+    event VexelBattleCommitted(uint256 indexed battleId, address indexed side);
+    event VexelBattleSettled(uint256 indexed battleId, address indexed winner, uint256 payoutWei);
+    event VexelStratagemExecuted(uint256 indexed stratagemId, address indexed executor, uint256 territoryId, uint256 unitCount);
+    event VexelCreditsDeposited(address indexed account, uint256 amountWei);
+    event VexelCreditsWithdrawn(address indexed account, uint256 amountWei);
+    event VexelFeesSwept(address indexed treasury, uint256 amountWei);
+    event VexelPauseToggled(bool paused);
+    event VexelTerritorySupplied(bytes32 indexed resourceId, uint256 amount);
+    event VexelSeasonAdvanced(uint256 indexed seasonId, uint256 startBlock, address indexed previousLeader, uint256 previousScore);
