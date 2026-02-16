@@ -278,3 +278,31 @@ contract FightTradeVexel {
         o.filled = true;
         vexelCredits[msg.sender] += refund;
         emit VexelOrderCancelled(orderId, msg.sender);
+    }
+
+    /// @notice Open a battle challenge against defender; both must have at least stake in credits.
+    function openBattle(address defender, uint256 stakeWei) external whenNotPaused nonReentrant returns (uint256 battleId) {
+        if (defender == address(0) || defender == msg.sender) revert VexelZeroAddress();
+        if (stakeWei < VEXEL_MIN_BATTLE_STAKE) revert VexelInsufficientCredits();
+        if (block.number < lastBattleBlock[msg.sender] + VEXEL_BATTLE_COOLDOWN_BLOCKS) revert VexelBattleCooldown();
+        if (vexelCredits[msg.sender] < stakeWei || vexelCredits[defender] < stakeWei) revert VexelInsufficientCredits();
+        vexelCredits[msg.sender] -= stakeWei;
+        vexelCredits[defender] -= stakeWei;
+        battleId = ++battleNonce;
+        vexelBattles[battleId] = VexelBattle({
+            challenger: msg.sender,
+            defender: defender,
+            stakeWei: stakeWei,
+            startBlock: block.number,
+            challengerCommit: bytes32(0),
+            defenderCommit: bytes32(0),
+            status: 0,
+            winner: address(0)
+        });
+        lastBattleBlock[msg.sender] = block.number;
+        lastBattleBlock[defender] = block.number;
+        battleIdsBySeason[currentSeasonId].push(battleId);
+        emit VexelBattleOpened(battleId, msg.sender, defender, stakeWei);
+        return battleId;
+    }
+
