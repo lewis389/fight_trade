@@ -558,3 +558,31 @@ contract FightTradeVexel {
     ) {
         uint256 n = battleIds.length;
         challengers = new address[](n);
+        defenders = new address[](n);
+        stakes = new uint256[](n);
+        startBlocks = new uint256[](n);
+        statuses = new uint8[](n);
+        winners = new address[](n);
+        for (uint256 i; i < n; ) {
+            VexelBattle storage b = vexelBattles[battleIds[i]];
+            challengers[i] = b.challenger;
+            defenders[i] = b.defender;
+            stakes[i] = b.stakeWei;
+            startBlocks[i] = b.startBlock;
+            statuses[i] = b.status;
+            winners[i] = b.winner;
+            unchecked { ++i; }
+        }
+    }
+
+    function getOpenOrderCount(address maker) external view returns (uint256) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < ordersByMaker[maker].length; ) {
+            if (!vexelOrders[ordersByMaker[maker][i]].filled && vexelOrders[ordersByMaker[maker][i]].amountWei > 0) count++;
+            unchecked { ++i; }
+        }
+        return count;
+    }
+
+    function getBattleIdsForSeason(uint256 seasonId) external view returns (uint256[] memory) {
+        return battleIdsBySeason[seasonId];
