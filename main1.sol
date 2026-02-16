@@ -362,3 +362,31 @@ contract FightTradeVexel {
         uint256 dd = uint256(d) % 100;
         if (cc > dd) return challenger;
         if (dd > cc) return defender;
+        return challenger;
+    }
+
+    /// @notice Execute a stratagem (territory move); consumes credits and records move hash.
+    function executeStratagem(
+        uint256 territoryId,
+        uint256 unitCount,
+        bytes32 moveHash
+    ) external whenNotPaused nonReentrant returns (uint256 stratagemId) {
+        if (territoryId >= VEXEL_MAX_TERRITORIES) revert VexelTerritoryOutOfRange();
+        if (unitCount > VEXEL_MAX_UNITS_PER_SLOT) revert VexelUnitsExceedMax();
+        uint256 cost = unitCount * 1e14;
+        if (vexelCredits[msg.sender] < cost) revert VexelInsufficientCredits();
+        vexelCredits[msg.sender] -= cost;
+        uint256 fee = (cost * VEXEL_STRATAGEM_FEE_BPS) / VEXEL_BPS_DENOM;
+        totalFeesCollected += fee;
+        stratagemId = ++stratagemNonce;
+        vexelStratagems[stratagemId] = VexelStratagem({
+            executor: msg.sender,
+            territoryId: territoryId,
+            unitCount: unitCount,
+            moveHash: moveHash,
+            executedBlock: block.number,
+            resolved: false
+        });
+        territoryUnits[msg.sender][territoryId] += unitCount;
+        emit VexelStratagemExecuted(stratagemId, msg.sender, territoryId, unitCount);
+        return stratagemId;
