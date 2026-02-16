@@ -390,3 +390,31 @@ contract FightTradeVexel {
         territoryUnits[msg.sender][territoryId] += unitCount;
         emit VexelStratagemExecuted(stratagemId, msg.sender, territoryId, unitCount);
         return stratagemId;
+    }
+
+    /// @notice Mark stratagem as resolved (e.g. after off-chain verification).
+    function resolveStratagem(uint256 stratagemId) external vexelGovernorOnly {
+        VexelStratagem storage s = vexelStratagems[stratagemId];
+        if (s.executor == address(0)) revert VexelTerritoryOutOfRange();
+        if (s.resolved) revert VexelStratagemAlreadyResolved();
+        s.resolved = true;
+    }
+
+    /// @notice Top up resource supply for a territory resource (governor).
+    function supplyTerritoryResource(bytes32 resourceId, uint256 amount) external vexelGovernorOnly {
+        territoryResourceSupply[resourceId] += amount;
+        emit VexelTerritorySupplied(resourceId, amount);
+    }
+
+    /// @notice Pause trading and battles.
+    function setPaused(bool paused) external vexelGovernorOnly {
+        vexelPaused = paused;
+        emit VexelPauseToggled(paused);
+    }
+
+    /// @notice Governor: advance to next season and record leader.
+    function advanceSeason() external vexelGovernorOnly {
+        uint256 prev = currentSeasonId;
+        address leader = seasonLeader[prev];
+        uint256 score = seasonLeaderScore[prev];
+        currentSeasonId++;
