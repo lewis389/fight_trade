@@ -530,3 +530,31 @@ contract FightTradeVexel {
         uint256 n = orderIds.length;
         makers = new address[](n);
         amounts = new uint256[](n);
+        priceBps = new uint256[](n);
+        expiryBlocks = new uint256[](n);
+        resourceIds = new bytes32[](n);
+        isBuys = new bool[](n);
+        filled = new bool[](n);
+        for (uint256 i; i < n; ) {
+            VexelOrder storage o = vexelOrders[orderIds[i]];
+            makers[i] = o.maker;
+            amounts[i] = o.amountWei;
+            priceBps[i] = o.priceBps;
+            expiryBlocks[i] = o.expiryBlock;
+            resourceIds[i] = o.resourceId;
+            isBuys[i] = o.isBuy;
+            filled[i] = o.filled;
+            unchecked { ++i; }
+        }
+    }
+
+    function getBatchBattles(uint256[] calldata battleIds) external view returns (
+        address[] memory challengers,
+        address[] memory defenders,
+        uint256[] memory stakes,
+        uint256[] memory startBlocks,
+        uint8[] memory statuses,
+        address[] memory winners
+    ) {
+        uint256 n = battleIds.length;
+        challengers = new address[](n);
