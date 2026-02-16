@@ -418,3 +418,31 @@ contract FightTradeVexel {
         address leader = seasonLeader[prev];
         uint256 score = seasonLeaderScore[prev];
         currentSeasonId++;
+        seasonStartBlock[currentSeasonId] = block.number;
+        emit VexelSeasonAdvanced(currentSeasonId, block.number, leader, score);
+    }
+
+    /// @notice Governor: set season leader and score for a season.
+    function setSeasonLeader(uint256 seasonId, address leader, uint256 score) external vexelGovernorOnly {
+        seasonLeader[seasonId] = leader;
+        seasonLeaderScore[seasonId] = score;
+    }
+
+    /// @notice Governor: whitelist or remove a resource for orders.
+    function setResourceWhitelist(bytes32 resourceId, bool allowed) external vexelGovernorOnly {
+        resourceIdWhitelist[resourceId] = allowed;
+        emit VexelResourceWhitelisted(resourceId, allowed);
+    }
+
+    /// @notice Governor: grant experience to an account (e.g. events or migration).
+    function grantExperience(address account, uint256 xp) external vexelGovernorOnly {
+        if (account == address(0)) revert VexelZeroAddress();
+        _addExperience(account, xp);
+    }
+
+    /// @notice Governor: set unit type strength for strategy resolution.
+    function setUnitTypeStrength(uint256 unitType, uint8 strength) external vexelGovernorOnly {
+        if (unitType >= VEXEL_UNIT_TYPE_COUNT) revert VexelTerritoryOutOfRange();
+        unitTypeStrength[unitType] = strength;
+    }
+
