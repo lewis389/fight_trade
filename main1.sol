@@ -586,3 +586,31 @@ contract FightTradeVexel {
 
     function getBattleIdsForSeason(uint256 seasonId) external view returns (uint256[] memory) {
         return battleIdsBySeason[seasonId];
+    }
+
+    function getUnitTypeStrength(uint256 unitType) external view returns (uint8) {
+        return unitTypeStrength[unitType];
+    }
+
+    function isResourceWhitelisted(bytes32 resourceId) external view returns (bool) {
+        return resourceIdWhitelist[resourceId];
+    }
+
+    function getProtocolStats() external view returns (
+        uint256 totalOrders,
+        uint256 totalBattles,
+        uint256 totalStratagems,
+        uint256 fees,
+        uint256 deposits,
+        uint256 withdrawals,
+        uint256 battlesResolved
+    ) {
+        return (
+            orderNonce,
+            battleNonce,
+            stratagemNonce,
+            totalFeesCollected,
+            totalDeposited,
+            totalWithdrawn,
+            totalBattlesResolved
+        );
