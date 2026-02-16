@@ -502,3 +502,31 @@ contract FightTradeVexel {
 
     function getTerritoryUnits(address account, uint256 territoryId) external view returns (uint256) {
         return territoryUnits[account][territoryId];
+    }
+
+    function getResourceSupply(bytes32 resourceId) external view returns (uint256) {
+        return territoryResourceSupply[resourceId];
+    }
+
+    function getSeasonInfo(uint256 seasonId) external view returns (uint256 startBlock, address leader, uint256 leaderScore) {
+        return (seasonStartBlock[seasonId], seasonLeader[seasonId], seasonLeaderScore[seasonId]);
+    }
+
+    function getCurrentSeasonBlocksRemaining() external view returns (uint256) {
+        uint256 end = seasonStartBlock[currentSeasonId] + VEXEL_SEASON_DURATION_BLOCKS;
+        if (block.number >= end) return 0;
+        return end - block.number;
+    }
+
+    function getBatchOrders(uint256[] calldata orderIds) external view returns (
+        address[] memory makers,
+        uint256[] memory amounts,
+        uint256[] memory priceBps,
+        uint256[] memory expiryBlocks,
+        bytes32[] memory resourceIds,
+        bool[] memory isBuys,
+        bool[] memory filled
+    ) {
+        uint256 n = orderIds.length;
+        makers = new address[](n);
+        amounts = new uint256[](n);
