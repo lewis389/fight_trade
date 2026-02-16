@@ -474,3 +474,31 @@ contract FightTradeVexel {
         address challenger,
         address defender,
         uint256 stakeWei,
+        uint256 startBlock,
+        bytes32 challengerCommit,
+        bytes32 defenderCommit,
+        uint8 status,
+        address winner
+    ) {
+        VexelBattle storage b = vexelBattles[battleId];
+        return (b.challenger, b.defender, b.stakeWei, b.startBlock, b.challengerCommit, b.defenderCommit, b.status, b.winner);
+    }
+
+    function getStratagem(uint256 stratagemId) external view returns (
+        address executor,
+        uint256 territoryId,
+        uint256 unitCount,
+        bytes32 moveHash,
+        uint256 executedBlock,
+        bool resolved
+    ) {
+        VexelStratagem storage s = vexelStratagems[stratagemId];
+        return (s.executor, s.territoryId, s.unitCount, s.moveHash, s.executedBlock, s.resolved);
+    }
+
+    function getMakerOrderIds(address maker) external view returns (uint256[] memory) {
+        return ordersByMaker[maker];
+    }
+
+    function getTerritoryUnits(address account, uint256 territoryId) external view returns (uint256) {
+        return territoryUnits[account][territoryId];
