@@ -250,3 +250,31 @@ contract FightTradeVexel {
         if (o.maker == address(0)) revert VexelInvalidOrderId();
         if (o.filled) revert VexelOrderAlreadyFilled();
         if (block.number > o.expiryBlock) revert VexelOrderExpired();
+        if (o.maker == msg.sender) revert VexelSelfOrder();
+        uint256 fillAmount = takeAmountWei;
+        if (fillAmount > o.amountWei) fillAmount = o.amountWei;
+        if (fillAmount == 0) revert VexelOrderAmountTooLow();
+        uint256 fee = (fillAmount * VEXEL_ORDER_FEE_BPS) / VEXEL_BPS_DENOM;
+        uint256 toMaker = fillAmount - fee;
+        if (vexelCredits[msg.sender] < fillAmount) revert VexelInsufficientCredits();
+        vexelCredits[msg.sender] -= fillAmount;
+        vexelCredits[o.maker] += toMaker;
+        totalFeesCollected += fee;
+        totalOrdersFilled += 1;
+        o.amountWei -= fillAmount;
+        if (o.amountWei == 0) o.filled = true;
+        _addExperience(msg.sender, fillAmount / 1e15);
+        _addExperience(o.maker, fillAmount / 1e15);
+        emit VexelOrderFilled(orderId, msg.sender, fillAmount, fee);
+    }
+
+    /// @notice Cancel an unfilled order and return credits to maker.
+    function cancelOrder(uint256 orderId) external nonReentrant {
+        VexelOrder storage o = vexelOrders[orderId];
+        if (o.maker != msg.sender) revert VexelUnauthorized();
+        if (o.filled) revert VexelOrderAlreadyFilled();
+        uint256 refund = o.amountWei;
+        o.amountWei = 0;
+        o.filled = true;
+        vexelCredits[msg.sender] += refund;
+        emit VexelOrderCancelled(orderId, msg.sender);
