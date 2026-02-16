@@ -446,3 +446,31 @@ contract FightTradeVexel {
         unitTypeStrength[unitType] = strength;
     }
 
+    /// @notice Sweep accumulated fees to treasury.
+    function sweepFees() external nonReentrant {
+        uint256 amount = totalFeesCollected;
+        if (amount == 0) return;
+        totalFeesCollected = 0;
+        (bool ok,) = vexelTreasury.call{value: amount}("");
+        if (!ok) revert VexelInsufficientCredits();
+        emit VexelFeesSwept(vexelTreasury, amount);
+    }
+
+    // ─── View helpers ─────────────────────────────────────────────────────────────
+    function getOrder(uint256 orderId) external view returns (
+        address maker,
+        uint256 amountWei,
+        uint256 priceBps,
+        uint256 expiryBlock,
+        bytes32 resourceId,
+        bool isBuy,
+        bool filled
+    ) {
+        VexelOrder storage o = vexelOrders[orderId];
+        return (o.maker, o.amountWei, o.priceBps, o.expiryBlock, o.resourceId, o.isBuy, o.filled);
+    }
+
+    function getBattle(uint256 battleId) external view returns (
+        address challenger,
+        address defender,
+        uint256 stakeWei,
