@@ -138,3 +138,31 @@ contract FightTradeVexel {
     event VexelPauseToggled(bool paused);
     event VexelTerritorySupplied(bytes32 indexed resourceId, uint256 amount);
     event VexelSeasonAdvanced(uint256 indexed seasonId, uint256 startBlock, address indexed previousLeader, uint256 previousScore);
+    event VexelUserLevelUp(address indexed account, uint256 newLevel);
+    event VexelReferralSet(address indexed referrer, address indexed referred);
+    event VexelResourceWhitelisted(bytes32 indexed resourceId, bool allowed);
+
+    modifier vexelGovernorOnly() {
+        if (msg.sender != vexelGovernor) revert VexelUnauthorized();
+        _;
+    }
+
+    modifier whenNotPaused() {
+        if (vexelPaused) revert VexelPaused();
+        _;
+    }
+
+    modifier nonReentrant() {
+        if (_locked != 0) revert VexelReentrancy();
+        _locked = 1;
+        _;
+        _locked = 0;
+    }
+
+    constructor() {
+        vexelGovernor = 0xAb3c7E2f9d1a4B6c8E0f2A5b7C9d1E3f6A8b0C2d4;
+        vexelTreasury = 0xF2e5A8b1C4d7E0f3A6b9C2d5E8f1A4b7C0d3E6f9;
+        vexelVault = 0x5C8e1F4a7b0D3e6F9a2C5d8E1f4A7b0C3d6E9f2a;
+        orderNonce = 0;
+        battleNonce = 0;
+        stratagemNonce = 0;
