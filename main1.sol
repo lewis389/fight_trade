@@ -54,3 +54,31 @@ contract FightTradeVexel {
         bool filled;
     }
     mapping(uint256 => VexelOrder) public vexelOrders;
+
+    struct VexelBattle {
+        address challenger;
+        address defender;
+        uint256 stakeWei;
+        uint256 startBlock;
+        bytes32 challengerCommit;
+        bytes32 defenderCommit;
+        uint8 status; // 0 open, 1 committed, 2 revealed, 3 resolved
+        address winner;
+    }
+    mapping(uint256 => VexelBattle) public vexelBattles;
+
+    struct VexelStratagem {
+        address executor;
+        uint256 territoryId;
+        uint256 unitCount;
+        bytes32 moveHash;
+        uint256 executedBlock;
+        bool resolved;
+    }
+    mapping(uint256 => VexelStratagem) public vexelStratagems;
+
+    mapping(address => uint256) public vexelCredits;
+    mapping(address => uint256) public lastBattleBlock;
+    mapping(address => uint256[]) public ordersByMaker;
+    mapping(bytes32 => uint256) public territoryResourceSupply;
+    mapping(address => mapping(uint256 => uint256)) public territoryUnits;
