@@ -334,3 +334,31 @@ contract FightTradeVexel {
         if (block.number < revealStart || block.number > revealEnd) revert VexelBattleNotCommitted();
         if (keccak256(abi.encodePacked(msg.sender, moveNonceChallenger, VEXEL_DOMAIN_TAG)) != b.challengerCommit && msg.sender != b.defender) revert VexelRevealMismatch();
         if (keccak256(abi.encodePacked(b.defender, moveNonceDefender, VEXEL_DOMAIN_TAG)) != b.defenderCommit) revert VexelRevealMismatch();
+        b.status = 2;
+        uint256 combinedStake = b.stakeWei * 2;
+        uint256 fee = (combinedStake * VEXEL_BATTLE_FEE_BPS) / VEXEL_BPS_DENOM;
+        uint256 payout = combinedStake - fee;
+        totalFeesCollected += fee;
+        totalBattlesResolved += 1;
+        address winner = _resolveWinner(moveNonceChallenger, moveNonceDefender, b.challenger, b.defender);
+        b.winner = winner;
+        b.status = 3;
+        vexelCredits[winner] += payout;
+        _addExperience(winner, b.stakeWei / 1e15);
+        emit VexelBattleSettled(battleId, winner, payout);
+    }
+
+    function _addExperience(address account, uint256 xp) internal {
+        if (account == address(0)) return;
+        userExperience[account] += xp;
+        while (userExperience[account] >= (userLevel[account] + 1) * VEXEL_LEVEL_UP_THRESHOLD) {
+            userLevel[account]++;
+            emit VexelUserLevelUp(account, userLevel[account]);
+        }
+    }
+
+    function _resolveWinner(bytes32 c, bytes32 d, address challenger, address defender) internal pure returns (address) {
+        uint256 cc = uint256(c) % 100;
+        uint256 dd = uint256(d) % 100;
+        if (cc > dd) return challenger;
+        if (dd > cc) return defender;
