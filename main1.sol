@@ -26,3 +26,31 @@ contract FightTradeVexel {
     uint256 public constant VEXEL_UNIT_TYPE_COUNT = 8;
     uint256 public constant VEXEL_RESOURCE_TYPE_COUNT = 16;
     uint256 public constant VEXEL_DEFAULT_CREDIT_BONUS_BPS = 0;
+    uint256 public constant VEXEL_REFERRAL_BONUS_BPS = 25;
+    uint256 public constant VEXEL_LEVEL_UP_THRESHOLD = 1000e18;
+
+    // ─── Immutable governance & treasury (no readonly) ───────────────────────────
+    address public immutable vexelGovernor;
+    address public immutable vexelTreasury;
+    address public immutable vexelVault;
+
+    // ─── State ───────────────────────────────────────────────────────────────────
+    uint256 private _locked;
+    bool public vexelPaused;
+    uint256 public orderNonce;
+    uint256 public battleNonce;
+    uint256 public stratagemNonce;
+    uint256 public totalFeesCollected;
+    uint256 public totalBattlesResolved;
+    uint256 public totalOrdersFilled;
+
+    struct VexelOrder {
+        address maker;
+        uint256 amountWei;
+        uint256 priceBps;
+        uint256 expiryBlock;
+        bytes32 resourceId;
+        bool isBuy;
+        bool filled;
+    }
+    mapping(uint256 => VexelOrder) public vexelOrders;
