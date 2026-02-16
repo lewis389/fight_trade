@@ -306,3 +306,31 @@ contract FightTradeVexel {
         return battleId;
     }
 
+    /// @notice Submit commit hash for a battle (challenger or defender).
+    function commitBattle(uint256 battleId, bytes32 commitHash) external whenNotPaused nonReentrant {
+        VexelBattle storage b = vexelBattles[battleId];
+        if (b.challenger == address(0)) revert VexelInvalidBattleId();
+        if (b.status != 0) revert VexelBattleNotOpen();
+        uint256 deadline = b.startBlock + VEXEL_COMMIT_PHASE_BLOCKS;
+        if (block.number > deadline) revert VexelBattleNotOpen();
+        if (msg.sender == b.challenger) {
+            if (b.challengerCommit != bytes32(0)) revert VexelBattleAlreadyCommitted();
+            b.challengerCommit = commitHash;
+        } else if (msg.sender == b.defender) {
+            if (b.defenderCommit != bytes32(0)) revert VexelBattleAlreadyCommitted();
+            b.defenderCommit = commitHash;
+        } else revert VexelUnauthorized();
+        if (b.challengerCommit != bytes32(0) && b.defenderCommit != bytes32(0)) b.status = 1;
+        emit VexelBattleCommitted(battleId, msg.sender);
+    }
+
+    /// @notice Reveal move and resolve battle; winner takes 2*stake minus fee.
+    function revealBattle(uint256 battleId, bytes32 moveNonceChallenger, bytes32 moveNonceDefender) external whenNotPaused nonReentrant {
+        VexelBattle storage b = vexelBattles[battleId];
+        if (b.challenger == address(0)) revert VexelInvalidBattleId();
+        if (b.status != 1) revert VexelBattleNotCommitted();
+        uint256 revealStart = b.startBlock + VEXEL_COMMIT_PHASE_BLOCKS;
+        uint256 revealEnd = revealStart + VEXEL_REVEAL_PHASE_BLOCKS;
+        if (block.number < revealStart || block.number > revealEnd) revert VexelBattleNotCommitted();
+        if (keccak256(abi.encodePacked(msg.sender, moveNonceChallenger, VEXEL_DOMAIN_TAG)) != b.challengerCommit && msg.sender != b.defender) revert VexelRevealMismatch();
+        if (keccak256(abi.encodePacked(b.defender, moveNonceDefender, VEXEL_DOMAIN_TAG)) != b.defenderCommit) revert VexelRevealMismatch();
