@@ -194,3 +194,31 @@ contract FightTradeVexel {
             vexelCredits[referrer] += bonus;
             vexelCredits[msg.sender] += (msg.value - bonus);
             emit VexelReferralSet(referrer, msg.sender);
+        } else {
+            vexelCredits[msg.sender] += msg.value;
+        }
+        emit VexelCreditsDeposited(msg.sender, msg.value);
+    }
+
+    /// @notice Withdraw credits back to caller.
+    function withdrawCredits(uint256 amountWei) external nonReentrant {
+        if (vexelCredits[msg.sender] < amountWei) revert VexelInsufficientCredits();
+        vexelCredits[msg.sender] -= amountWei;
+        totalWithdrawn += amountWei;
+        (bool ok,) = msg.sender.call{value: amountWei}("");
+        if (!ok) revert VexelInsufficientCredits();
+        emit VexelCreditsWithdrawn(msg.sender, amountWei);
+    }
+
+    /// @notice Place a limit order (buy or sell) for a resource.
+    function placeOrder(
+        uint256 amountWei,
+        uint256 priceBps,
+        bytes32 resourceId,
+        bool isBuy
+    ) external whenNotPaused nonReentrant returns (uint256 orderId) {
+        if (amountWei < VEXEL_MIN_ORDER_AMOUNT) revert VexelOrderAmountTooLow();
+        if (priceBps == 0 || priceBps > VEXEL_BPS_DENOM) revert VexelInvalidPrice();
+        if (!resourceIdWhitelist[resourceId]) revert VexelResourceNotWhitelisted();
+        uint256 openCount = 0;
+        for (uint256 i = 0; i < ordersByMaker[msg.sender].length; ) {
