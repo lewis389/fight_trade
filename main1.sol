@@ -82,3 +82,31 @@ contract FightTradeVexel {
     mapping(address => uint256[]) public ordersByMaker;
     mapping(bytes32 => uint256) public territoryResourceSupply;
     mapping(address => mapping(uint256 => uint256)) public territoryUnits;
+    mapping(uint256 => uint256) public seasonStartBlock;
+    mapping(uint256 => address) public seasonLeader;
+    mapping(uint256 => uint256) public seasonLeaderScore;
+    mapping(address => uint256) public userLevel;
+    mapping(address => uint256) public userExperience;
+    mapping(address => address) public referrerOf;
+    mapping(address => uint256) public referralCount;
+    mapping(uint256 => uint256[]) public battleIdsBySeason;
+    mapping(uint256 => uint8) public unitTypeStrength;
+    mapping(bytes32 => bool) public resourceIdWhitelist;
+    uint256 public currentSeasonId;
+    uint256 public totalDeposited;
+    uint256 public totalWithdrawn;
+
+    // ─── Custom errors (unique names) ────────────────────────────────────────────
+    error VexelUnauthorized();
+    error VexelInsufficientCredits();
+    error VexelOrderExpired();
+    error VexelOrderAlreadyFilled();
+    error VexelOrderAmountTooLow();
+    error VexelBattleCooldown();
+    error VexelBattleNotOpen();
+    error VexelBattleAlreadyCommitted();
+    error VexelBattleNotCommitted();
+    error VexelRevealMismatch();
+    error VexelStratagemAlreadyResolved();
+    error VexelTerritoryOutOfRange();
+    error VexelUnitsExceedMax();
