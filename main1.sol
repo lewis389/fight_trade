@@ -614,3 +614,26 @@ contract FightTradeVexel {
             totalWithdrawn,
             totalBattlesResolved
         );
+    }
+
+    function getAccountStats(address account) external view returns (
+        uint256 credits,
+        uint256 level,
+        uint256 experience,
+        uint256 orderCount,
+        address referrer
+    ) {
+        return (
+            vexelCredits[account],
+            userLevel[account],
+            userExperience[account],
+            ordersByMaker[account].length,
+            referrerOf[account]
+        );
+    }
+
+    receive() external payable {
+        vexelCredits[msg.sender] += msg.value;
+        emit VexelCreditsDeposited(msg.sender, msg.value);
+    }
+}
